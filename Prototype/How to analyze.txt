@@ -1,0 +1,117 @@
+OBS! You probably need to specify the directory for user installed packages in the config file. 
+
+1. Dimensionality reduction
+
+Rscript dim_red.R path/to/feature/data nwords ntopics
+
+Input: 
+ Directory whith dtm.mtx, featureNames.txt & fileID.txt
+ number of words chosen with TFIDF. Set NULL for no TFIDF dim reduction. (Not required if you have a lot of time)
+ number of topics with LDA
+
+Output: Topic proportion matrix as an .rda file in the working directory
+
+Ex: 
+Rscript dim_red.R "C:/Users/erogeka/failed-for-test/processedLogs/" 2000 20
+
+Required R-packages: 
+Matrix
+topicmodels
+(You can install packages with install.packages('packagename') in R)
+-------------------------------------------------------------------------------------------
+2. Supervised modeling
+Note that response and covariates can be manually altered in the config.R file as well as input parameters for the models. 
+
+-------------------------------------------------------------------------------------------
+2.1 Bayesian
+OBS! It is important that the acceptance probability is approximately 0.3 for the posterior distributions to be correct
+To get trim the acceptance rate, alter kappa in the config file
+Assumes that './data/labeled_logs.csv' exist with information on the labeled logs in the working directory. Assumes that './results/topics.rda' with dmensionality reduced logs exists in the working directory.
+The same function as in bssl-modeling is used, but only with the available labeled data. 
+
+Rscript bsl-modeling.R vis = TRUE/FALSE
+
+Input: 
+ vis (TRUE/FALSE) for visualizations of parameter posterior distributions
+Output: 
+ The posterior distributions of the model parameters are saved in './results/bsl-model.rda'
+
+Ex: 
+Rscript  bsl-modeling.R TRUE
+
+Required R-packages:
+ggplot2
+gridEstra
+grid
+Matrix
+grid
+foreach
+glmnet
+plyr
+reshape2
+-------------------------------------------------------------------------------------------
+
+2.2 Non-Bayesian
+Assumes that './data/labeled_logs.csv' exist with information on the labeled logs in the working directory. Assumes that './results/topics.rda' with dmensionality reduced logs exists in the working directory.
+
+Rscript sl-modeling.R
+ 
+Output: 
+ The model parameters are saved in './results/sl-model.rda'
+
+Required R-packages:
+nnet
+-------------------------------------------------------------------------------------------
+
+3. Bayesian semi-supervised modeling
+Note that response and covariates can be manually altered in the config.R file as well as input parameters for the models.
+OBS! It is important that the acceptance probability is approximately 0.3 for the posterior distributions to be correct
+To get trim the acceptance rate, alter kappa in the config file
+
+Rscript bssl-modeling.R path/to/data vis = TRUE/FALSE
+
+Input: 
+ vis (TRUE/FALSE) for visualizations of parameter posterior distributions
+Output: 
+ The posterior distributions of the model parameters are saved in './results/bssl-model.rda'
+
+Ex: 
+Rscript bssl-modeling.R TRUE
+
+Required R-packages:
+ggplot2
+gridEstra
+grid
+Matrix
+grid
+foreach
+glmnet
+plyr
+reshape2
+-------------------------------------------------------------------------------------------
+
+5. Active learning
+This script can call the other model scripts, evaluate unlabeled data with this model and return a query of the most informative query according to a chosen active learning strategy. 
+Assumes that the model parameters can be found in './results/modelname.rda'
+
+Rscript al.R alMethod
+Input:
+ alMethod can be 'LC' (Least Confident), 'marg' (Margin), 'maxEntropy' (Maximum Entropy), exp.model.change.ml' (Expected Model Change),'exp.error.reduction' (Expected Error Reduction), 'random' (Random sampling)
+
+Ex: 
+Rscript al.R 'maxEntropy' 'sl'
+-------------------------------------------------------------------------------------------
+
+6. Predict new unlabeled sample
+Assume normalized, filtered log and derived dtm in './data/newData/', that lda model and selected features can be found in './results/' as well as trained models. 
+
+Rscript new_pred.R model
+
+Input:
+ model: model name for prediction. Available models: 'sl' (supervised learning), 'bls' (Bayesian supervised learning) and 'bssl' (Bayesian semi-supervised learning)
+Output: 
+Prediction
+
+Ex:
+Rscript new_pred.R 'sl'
+
